@@ -18,7 +18,7 @@ const ChatWindow = ({ currentChat }) => {
 
       try {
         const response = await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/send-message`,
+          "https://project-5-eeht.onrender.com/send-message",
           {
             to,
             message: newMessage,
@@ -27,7 +27,7 @@ const ChatWindow = ({ currentChat }) => {
   
         // Handle webhook response
         const webhookResponse = await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/webhook`,
+          "https://project-5-eeht.onrender.com/webhook",
           response.data
         );
   
