@@ -64,7 +64,7 @@ app.post("/send-message", async (req, res) => {
     );
 
     res.json(response.data);
-    //console.log("Response Data:", response.data);
+    console.log("Response Data:", response.data);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to send message" });
