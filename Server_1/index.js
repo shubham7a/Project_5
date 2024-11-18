@@ -20,13 +20,13 @@ const whatsappCloudApi = {
   apiSecret: process.env.API_SECRET,
 };
 
-app.post("/webhook", (req, res) => {
-  const webhookBody = req.body;
+// app.post("/webhook", (req, res) => {
+//   const webhookBody = req.body;
 
-  console.error("webhook data:", webhookBody);
+//   console.error("webhook data:", webhookBody);
 
-  res.status(200).send("WEBHOOK_RECEIVED");
-});
+//   res.status(200).send("WEBHOOK_RECEIVED");
+// });
 
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
@@ -41,23 +41,118 @@ app.get("/webhook", (req, res) => {
 });
 
 
+app.post("/webhook", function (request, response) {
+  console.log('Incoming Webhook Payload:', JSON.stringify(request.body, null, 2));
+  try {
+    const entry = request.body?.entry?.[0];
+    if (!entry) throw new Error('Entry is missing in the webhook request');
+
+    const changes = entry?.changes?.[0];
+    if (!changes) throw new Error('Changes array is missing in the webhook request');
+
+    // Check if the event contains messages
+    if (changes?.value?.messages) {
+      const contact = changes?.value?.contacts?.[0];
+      if (!contact) throw new Error('Contact information is missing in the webhook request');
+
+      const message = changes?.value?.messages?.[0];
+      if (!message) throw new Error('Message information is missing in the webhook request');
+
+      const waId = contact?.wa_id;
+      const contactName = contact?.profile?.name;
+      const messageBody = message?.text?.body||message?.image?.id || message?.reaction?.emoji;
+      const messageType = message?.type;
+      const phoneNumberId = changes?.value?.metadata?.phone_number_id;
+        
+
+
+      console.log("===========================");
+      console.log('Phone Number From:', waId);
+      console.log('Contact Name:', contactName);
+      console.log('Message Body:', messageBody);
+      console.log('Message Type:', messageType);
+      console.log('Phone Number ID:', phoneNumberId);
+
+  
+
+      
+      const payload = {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: waId,
+        type: "text",
+        text: {
+          preview_url: false,
+          body: ` Hello ${contactName} ❤️`
+        }
+        
+      };
+
+      
+      axios.post(
+        `${whatsappCloudApi.baseUrl}/${whatsappCloudApi.phoneNumberId}/messages`,
+        payload,
+        {
+          headers: {
+            Authorization: "Bearer EAANHvhSji6cBO1T6w30ZAOCcAlveSRED0UVVu5VHjW0gbw3gP08FuPcOoLVADZBlnhma7JbHBRmxkFHM261WrZBK63oxT0xfxlhlOZBnjqxFH43pZASpTlAwb7KqUlv2Vjk8e1xub1ObpqY0uCk60v4wzMDlEOWe2mZBPrOtbauzBdbjDX6DqfRFvFv8rdsb9efrLI4Bh6tIPVoHAUKLoyoWOVEEaC4R4GCOKRYUI9w3UZD",
+            "Content-Type": "application/json",
+          },
+        }
+      )
+        .then(response => {
+          console.log('Message sent successfully:', response?.data);
+        })
+        .catch(error => {
+          console.error('Error sending message:', error?.response?.data || error.message);
+        });
+
+      response.sendStatus(200);
+    } else if (changes?.value?.statuses) {
+      
+      const status = changes?.value?.statuses?.[0];
+      if (!status) throw new Error('Status information is missing in the webhook request');
+
+      const messageStatus = status?.status;
+      const recipientId = status?.recipient_id;
+      const conversationId = status?.conversation?.id;
+
+      
+        console.log("===========================");
+        console.log('Message Status:', messageStatus);
+        console.log('Recipient ID:', recipientId);
+        if(messageStatus === 'delivered' )
+        console.log('Conversation ID:', conversationId);
+
+      response.sendStatus(200);  
+    } else {
+      throw new Error('Unknown event type in the webhook request');
+    }
+
+  } catch (error) {
+    console.error('Error processing webhook:', error.message);
+    response.sendStatus(500);  
+  }
+});
+
 
 app.post("/send-message", async (req, res) => {
   try {
     const { to, message } = req.body;
 
+    const product={
+      messaging_product: "whatsapp",
+      to: `91${to}`,
+      type: "text",
+      text: { body: message },
+    }
+
     // WhatsApp Cloud API request to send message
     const response = await axios.post(
       `${whatsappCloudApi.baseUrl}/${whatsappCloudApi.phoneNumberId}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: `91${to}`,
-        type: "text",
-        text: { body: message },
-      },
+      product,
       {
         headers: {
-          Authorization: "Bearer EAANHvhSji6cBO59KZAQkZBEe6hr5Y5Udy7wLDzTtZAYhIzsDdwYZCm5KA2F7UZCUkf9S63H1FPqFerGFHFauKZAPZB5yOxZAO1arqTRSji3wgZAZAsZB5bShho6XXQt7YxWJp7SXbZBikPeDUZAwqbhZA42WHshZAmkrGGuxb2ZCylb9h7oZB7g8AH9ZBhTlZCU8rOz2uBZCDSWhXjZAPuxqVZCXhz1HEsAleQFiIdli2bTI3ABN7CzGzZBL2gZD",
+          Authorization: "Bearer EAANHvhSji6cBO1T6w30ZAOCcAlveSRED0UVVu5VHjW0gbw3gP08FuPcOoLVADZBlnhma7JbHBRmxkFHM261WrZBK63oxT0xfxlhlOZBnjqxFH43pZASpTlAwb7KqUlv2Vjk8e1xub1ObpqY0uCk60v4wzMDlEOWe2mZBPrOtbauzBdbjDX6DqfRFvFv8rdsb9efrLI4Bh6tIPVoHAUKLoyoWOVEEaC4R4GCOKRYUI9w3UZD",
           "Content-Type": "application/json",
         },
       }

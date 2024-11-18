@@ -30,7 +30,7 @@ const ChatWindow = ({ currentChat }) => {
           "https://project-5-eeht.onrender.com/webhook",
           response.data
         );
-  
+   
         console.log("Webhook Response:", webhookResponse.data);
       } catch (error) {
         console.error("Error sending message:", error);
