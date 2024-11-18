@@ -17,7 +17,6 @@ app.use(express.json());
 const whatsappCloudApi = {   
   baseUrl: process.env.BASE_URL,
   phoneNumberId: process.env.PHONE_NUMBER,
-  apiKey: process.env.API_KEY,
   apiSecret: process.env.API_SECRET,
 };
 
@@ -58,7 +57,7 @@ app.post("/send-message", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${whatsappCloudApi.apiKey}`,
+          Authorization: "Bearer EAANHvhSji6cBO38rQu75J7X4qtqvEuhbzEq6PcU7sCEhE5GCmhjxEBWm7k0xj0nwPTOOI7f46c67Nfh5nE63JZBh7vo4YV8XKTDYtZCZC3ndGBr8yMZCFKqGH950czZBxZCriXdLKZC3dzXHY1YsMXcLePSiZB4q6nInA5RkEEVMtZCAROVR1ovh8iqdFLCemyOxVRZBhbws9jH7WhfpktcrnILCZCzheP4lTZBKiolXMh8NdskZD",
           "Content-Type": "application/json",
         },
       }
